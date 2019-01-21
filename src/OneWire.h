@@ -6,7 +6,9 @@
 // about 250 bytes.  It does NOT consume RAM (but did in very
 // old versions of OneWire).  If you disable this, a slower
 // but very compact algorithm is used.
+#ifndef ONEWIRE_USE_CRC8_TABLE
 #define ONEWIRE_USE_CRC8_TABLE 1
+#endif
 
 // micro controller feature to use internal pull-ups
 // NOTE: may work, depends on controler and bus-load -> analyse signal traces with scope for reassurance
@@ -18,13 +20,65 @@
 // NOTE: you need to power the devices yourself, because the external
 // PU-resistor might not do it completely
 
+// Based on:
+// 1-Wire Communication Through Software - Application Note Maxim
+//   https://pdfserv.maximintegrated.com/en/an/AN126.pdf Figure 1. 1-Wire waveforms
+// Spreadsheet
+//   https://www.maximintegrated.com/en/design/tools/appnotes/126/AN126-timing-calculation.zip
+// Guidelines for Reliable Long Line 1-Wire Networks
+//   https://www.maximintegrated.com/en/app-notes/index.mvp/id/148
+
+#ifndef ONEWIRE_TIME_MARGIN
+#define ONEWIRE_TIME_MARGIN 15
+#endif
+
+#ifndef ONEWIRE_TIME_A
+#define ONEWIRE_TIME_A  3
+#endif
+
+#ifndef ONEWIRE_TIME_B
+#define ONEWIRE_TIME_B  (64 + ONEWIRE_TIME_MARGIN)
+#endif
+
+#ifndef ONEWIRE_TIME_C
+#define ONEWIRE_TIME_C  (60 + ONEWIRE_TIME_MARGIN)
+#endif
+
+#ifndef ONEWIRE_TIME_D
+#define ONEWIRE_TIME_D  (10 + ONEWIRE_TIME_MARGIN)
+#endif
+
+#ifndef ONEWIRE_TIME_E
+#define ONEWIRE_TIME_E  11
+#endif
+
+#ifndef ONEWIRE_TIME_F
+#define ONEWIRE_TIME_F  (55 + ONEWIRE_TIME_MARGIN)
+#endif
+
+#ifndef ONEWIRE_TIME_G
+#define ONEWIRE_TIME_G   0
+#endif
+
+#ifndef ONEWIRE_TIME_H
+#define ONEWIRE_TIME_H (480 + ONEWIRE_TIME_MARGIN)
+#endif
+
+#ifndef ONEWIRE_TIME_I
+#define ONEWIRE_TIME_I  70
+#endif
+
+#ifndef ONEWIRE_TIME_J
+#define ONEWIRE_TIME_J (410+ONEWIRE_TIME_MARGIN)
+#endif
+
 #include "platform.h"
 
 class OneWire {
 private:
 
-    io_reg_t pin_bitMask;
-    volatile io_reg_t* pin_baseReg;
+    const io_reg_t pin_bitMask;
+    volatile io_reg_t* const pin_baseReg;
 
     /// search state
     uint8_t search_rom_array[8];

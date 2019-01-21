@@ -91,6 +91,8 @@ sample code bearing this copyright.
 #include "OneWire.h"
 
 OneWire::OneWire(const uint8_t pin)
+  : pin_bitMask(PIN_TO_BITMASK(pin)),
+    pin_baseReg(PIN_TO_BASEREG(pin))
 {
     // prepare pin
 
@@ -100,16 +102,13 @@ OneWire::OneWire(const uint8_t pin)
     pinMode(pin, INPUT);
 #endif
 
-    pin_bitMask = PIN_TO_BITMASK(pin);
-    pin_baseReg = PIN_TO_BASEREG(pin);
-
     reset_search(); // really needed?
 }
 
 bool OneWire::reset()
 {
     const io_reg_t _bitMask = pin_bitMask; // local copies save pgm-space when called >1
-    volatile io_reg_t* _baseReg = pin_baseReg;
+    volatile io_reg_t* const _baseReg = pin_baseReg;
 
     uint8_t retries = 125;
 
@@ -123,17 +122,19 @@ bool OneWire::reset()
     }
     while (!DIRECT_READ(_baseReg, _bitMask));
 
+    DELAY_MICROSECONDS(ONEWIRE_TIME_G);
+
     DIRECT_WRITE_LOW(_baseReg, _bitMask);
     DIRECT_MODE_OUTPUT(_baseReg, _bitMask);    // drive output low
-    DELAY_MICROSECONDS(480);
+    DELAY_MICROSECONDS(ONEWIRE_TIME_H);
 
     noInterrupts();
     DIRECT_MODE_INPUT(_baseReg, _bitMask);    // allow it to float
 
-    DELAY_MICROSECONDS(70);
+    DELAY_MICROSECONDS(ONEWIRE_TIME_I);
     const bool success = !DIRECT_READ(_baseReg, _bitMask);
     interrupts();
-    DELAY_MICROSECONDS(410);
+    DELAY_MICROSECONDS(ONEWIRE_TIME_J);
 
     // TODO: after presence detection we could power the hub if wanted
     return success;
@@ -141,35 +142,44 @@ bool OneWire::reset()
 
 void OneWire::write_bit(const bool value, const bool power)
 {
-    const uint8_t time_high = uint8_t(value ? 10 : 60);
-    const uint8_t time_low = uint8_t(value ? 55 : 5);
     const io_reg_t _bitMask = pin_bitMask; // local copies save pgm-space when called >1
-    volatile io_reg_t* _baseReg = pin_baseReg;
+    volatile io_reg_t* const _baseReg = pin_baseReg;
 
-    noInterrupts();
-    DIRECT_WRITE_LOW(_baseReg, _bitMask);
-    DIRECT_MODE_OUTPUT(_baseReg, _bitMask);    // drive output low
-    DELAY_MICROSECONDS(time_high);
-    if (!power) DIRECT_MODE_INPUT(_baseReg, _bitMask);    // allow it to float
-    DIRECT_WRITE_HIGH(_baseReg, _bitMask);    // drive output high
-    interrupts();
-    DELAY_MICROSECONDS(time_low);
+    if (value) {
+      noInterrupts();
+      DIRECT_WRITE_LOW(_baseReg, _bitMask);
+      DIRECT_MODE_OUTPUT(_baseReg, _bitMask);    // drive output low
+      DELAY_MICROSECONDS(ONEWIRE_TIME_A);
+      if (!power) DIRECT_MODE_INPUT(_baseReg, _bitMask);    // allow it to float
+      DIRECT_WRITE_HIGH(_baseReg, _bitMask);    // drive output high
+      interrupts();
+      DELAY_MICROSECONDS(ONEWIRE_TIME_B);
+    } else {
+      noInterrupts();
+      DIRECT_WRITE_LOW(_baseReg, _bitMask);
+      DIRECT_MODE_OUTPUT(_baseReg, _bitMask);    // drive output low
+      DELAY_MICROSECONDS(ONEWIRE_TIME_C);
+      if (!power) DIRECT_MODE_INPUT(_baseReg, _bitMask);    // allow it to float
+      DIRECT_WRITE_HIGH(_baseReg, _bitMask);    // drive output high
+      interrupts();
+      DELAY_MICROSECONDS(ONEWIRE_TIME_D);
+    }
 }
 
 bool OneWire::read_bit()
 {
     const io_reg_t _bitMask = pin_bitMask; // local copies save pgm-space when called >1
-    volatile io_reg_t* _baseReg = pin_baseReg;
+    volatile io_reg_t* const _baseReg = pin_baseReg;
 
     noInterrupts();
     DIRECT_WRITE_LOW(_baseReg, _bitMask);
     DIRECT_MODE_OUTPUT(_baseReg, _bitMask);
-    DELAY_MICROSECONDS(3);
+    DELAY_MICROSECONDS(ONEWIRE_TIME_A);
     DIRECT_MODE_INPUT(_baseReg, _bitMask);    // let pin float, pull up will raise
-    DELAY_MICROSECONDS(10);
+    DELAY_MICROSECONDS(ONEWIRE_TIME_E);
     const bool value = DIRECT_READ(_baseReg, _bitMask);
     interrupts();
-    DELAY_MICROSECONDS(53);
+    DELAY_MICROSECONDS(ONEWIRE_TIME_F);
     return value;
 }
 
