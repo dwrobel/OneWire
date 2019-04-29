@@ -106,7 +106,7 @@ using io_reg_t = uint32_t; // define special data type for register-access
 #define DELAY_MICROSECONDS(us)		    delayMicroseconds(us)
 using io_reg_t = uint32_t; // define special data type for register-access
 
-#elif defined(ARDUINO_ARCH_ESP32) || defined(ESP32) /* ESP32 Family */
+#elif defined(ARDUINO_ARCH_ESP32) || defined(ESP32) || defined(ARDUINO_ARCH_STM32) /* ESP32 or STM32 Family */
 
 #define PIN_TO_BASEREG(pin)             (0)
 #define PIN_TO_BITMASK(pin)             (pin)
@@ -123,6 +123,8 @@ using io_reg_t = uint32_t; // define special data type for register-access
 #define DIRECT_MODE_OUTPUT(base, pin)   pinMode(pin,OUTPUT)
 #define DELAY_MICROSECONDS(us)		    delayMicroseconds(us)
 using io_reg_t = uint32_t; // define special data type for register-access
+
+#define DO_NOT_USE_PIN_BASEREG // do not declare: volatile io_reg_t* const _baseReg = pin_baseReg;
 
 #if ONEWIRE_USE_PULL_UP
 #warning "Internal pull up of controller is NOT strong enough to power the OW-Bus!"

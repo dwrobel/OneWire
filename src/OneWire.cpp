@@ -108,8 +108,9 @@ OneWire::OneWire(const uint8_t pin)
 bool OneWire::reset()
 {
     const io_reg_t _bitMask = pin_bitMask; // local copies save pgm-space when called >1
+#ifndef DO_NOT_USE_PIN_BASEREG
     volatile io_reg_t* const _baseReg = pin_baseReg;
-
+#endif
     uint8_t retries = 125;
 
     DIRECT_MODE_INPUT(_baseReg, _bitMask);
@@ -143,8 +144,9 @@ bool OneWire::reset()
 void OneWire::write_bit(const bool value, const bool power)
 {
     const io_reg_t _bitMask = pin_bitMask; // local copies save pgm-space when called >1
+#ifndef DO_NOT_USE_PIN_BASEREG
     volatile io_reg_t* const _baseReg = pin_baseReg;
-
+#endif
     if (value) {
       noInterrupts();
       DIRECT_WRITE_LOW(_baseReg, _bitMask);
@@ -169,8 +171,9 @@ void OneWire::write_bit(const bool value, const bool power)
 bool OneWire::read_bit()
 {
     const io_reg_t _bitMask = pin_bitMask; // local copies save pgm-space when called >1
+#ifndef DO_NOT_USE_PIN_BASEREG
     volatile io_reg_t* const _baseReg = pin_baseReg;
-
+#endif
     noInterrupts();
     DIRECT_WRITE_LOW(_baseReg, _bitMask);
     DIRECT_MODE_OUTPUT(_baseReg, _bitMask);
