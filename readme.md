@@ -93,6 +93,10 @@ OneWire Master Library
    - teensy 2 -> crc-lib has linker problem in platformIO
 
 ### Development history
+Version 4.0
+- Adjust 1-Wire timings to make it work also for long networks
+- Add support for STM32 (fix compilation errors)
+
 Version 3.0
 - real life tested with several platforms (atmega, atsamD21, Atsam3x, esp8266, esp32, teensy)
 - extend and fix hardware support (specially esp-boards, esp32, ...)
